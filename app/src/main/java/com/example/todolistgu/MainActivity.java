@@ -26,9 +26,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        addbtn= findViewById(R.id=addbtn);
-        listview = findViewById(R.id=listview);
-        input= findViewById(R.id=input);
+        addbtn= findViewById(R.id.addbtn);
+        listview = findViewById(R.id.listview);
+        input= findViewById(R.id.input);
 
        addbtn.setOnClickListener(new View.OnClickListener() {
            @Override
@@ -56,15 +56,17 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void deleteItem(){
-
-
+    public void deleteItem() {
         listview.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
-            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
-                items.remove(i);
-                return true;
+            public boolean onItemLongClick(AdapterView<?> adapterView, View view, int position, long id) {
+                // Remove the item from the list
+                items.remove(position);
 
+                // Notify the adapter that the data set has changed
+                itemsAdapter.notifyDataSetChanged(); // Ensure you have a reference to the adapter
+
+                return true; // Indicate that the event was handled
             }
         });
     }

@@ -11,52 +11,62 @@ import androidx.annotation.Nullable;
 public class DatabaseLogin extends SQLiteOpenHelper {
 
     static final String dbName = "databaseLogin";
-    static final  String tbName = "users";
+    static final String tbName = "users";
+
+    // Constants for column names
+    static final String COLUMN_USERNAME = "username";
+    static final String COLUMN_EMAIL = "email";
+    static final String COLUMN_PASSWORD = "password";
+
     public DatabaseLogin(@Nullable Context context) {
-        super(context, dbName, null,1);
+        super(context, dbName, null, 1);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-
+        // Table creation SQL
+        String createTable = "CREATE TABLE " + tbName + " (" +
+                COLUMN_USERNAME + " TEXT PRIMARY KEY, " +
+                COLUMN_EMAIL + " TEXT UNIQUE, " +
+                COLUMN_PASSWORD + " TEXT)";
         db.execSQL(createTable);
-
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase db, int i, int i1) {
-        db.execSQL("drop table if exists users");
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        // Drop the table and recreate it if the schema is upgraded
+        db.execSQL("DROP TABLE IF EXISTS " + tbName);
+        onCreate(db);
     }
-    String createTable = "create table users (username TEXT PRIMARY KEY ," +
-            "email TEXT UNIQUE , password TEXT)";
 
-    public Boolean insertUser(String  username, String  email ,String password) {
-
+    // Method to insert a user into the database
+    public Boolean insertUser(String username, String email, String password) {
         SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues content =  new ContentValues();
-        content.put("username", username);
-        content.put("email", email);
-        content.put("password", password);
-        long result   = db.insert(tbName, null , content);
-        if(result==-1) {
-            return  false;
-        }
-        else return true ;
+        ContentValues content = new ContentValues();
+        content.put(COLUMN_USERNAME, username);
+        content.put(COLUMN_EMAIL, email);
+        content.put(COLUMN_PASSWORD, password);
 
+        long result = db.insert(tbName, null, content);
+        db.close(); // Always close the database after operations
+        return result != -1;
     }
 
-    public Boolean userCheckDatabase(String username , String password) {
+    // Method to check if a user exists with the given username and password
+    public Boolean userCheckDatabase(String username, String password) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + tbName + " WHERE " + COLUMN_USERNAME + " =? AND " + COLUMN_PASSWORD + " =?",
+                new String[]{username, password});
 
-        SQLiteDatabase db = this.getWritableDatabase();
-
-        Cursor cursor = db.rawQuery("select * from users where username =? and password =?", new String[] {username , password} );
-
-        if(cursor.getCount()>0) {
-            return true;
-
+        boolean userExists = false;
+        if (cursor != null) {
+            // Move cursor to first row
+            if (cursor.moveToFirst()) {
+                userExists = true;
+            }
+            cursor.close(); // Close cursor after use
         }
-        else return false ;
+        db.close(); // Close the database after use
+        return userExists;
     }
-
-
 }
